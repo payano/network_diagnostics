@@ -15,7 +15,6 @@ struct mode_specific {
 
 #define BUFLEN 512
 
-
 int receiver_init(struct tester_params *data)
 {
 	int ret;
@@ -26,7 +25,6 @@ int receiver_init(struct tester_params *data)
 		printf("Couldn't allocate memory.\n");
 		return 1;
 	}
-
 
 	if(PROTO_TCP == data->eth_proto)
 		data->specific->socket = socket(AF_INET, SOCK_STREAM,
@@ -139,6 +137,7 @@ static int recv_tcp(struct tester_params *data)
 				return 1;
 			}
 		}
+		close(clientfd);
 	}
 	return 0;
 }

@@ -25,7 +25,7 @@ int listener_init(struct tester_params *data)
 
 	data->specific->pcap_handle = pcap_create(data->eth_if, errbuf);
 	if(!data->specific->pcap_handle) {
-		printf("Error: %s\n", errbuf);
+		printf("Error: pcap_create %s\n", errbuf);
 		return 1;
 	}
 
@@ -36,8 +36,10 @@ int listener_init(struct tester_params *data)
 	}
 
 	ret = pcap_activate(data->specific->pcap_handle);
-	if(ret)
-		printf("Error: %s\n", pcap_statustostr(ret));
+	if(ret) {
+		printf("Error pcap_activate: %s\n", pcap_statustostr(ret));
+		return 1;
+	}
 
 	snprintf(filter_exp, sizeof(filter_exp), "dst %s and src %s",
 	         data->ipv4_dst_str, data->ipv4_src_str);
@@ -79,6 +81,7 @@ int listener_main(struct tester_params *data)
 
 void listener_cleanup(struct tester_params *data)
 {
-	pcap_close(data->specific->pcap_handle);
+	if(data->specific->pcap_handle)
+		pcap_close(data->specific->pcap_handle);
 	free(data->specific);
 }

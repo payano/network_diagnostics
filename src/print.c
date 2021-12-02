@@ -16,7 +16,7 @@ void print_help(char *filename)
 	printf("  -l       Mode listener (listens to data from client)\n");
 	printf("  -i       Network interface to use\n");
 	printf("  -d       Destination address to send data (used with -c)\n");
-	printf("  -p       tcp/udp port\n");
+	printf("  -p       port number\n");
 	printf("  -s       Source address to send data (used with -c)\n");
 	printf("  -t       ethernet protocol (tcp or udp)\n");
 	printf("  -v       vlan id\n");

@@ -41,10 +41,11 @@ static int validate_ipv4_octet(char *ipv4_octet)
 	if(len > 3)
 		return 1;
 
-
 	for(int i = 0; i < len; ++i) {
-		if(*ipv4_octet <= '0' || *ipv4_octet >= '9')
+		if(*ipv4_octet < '0' || *ipv4_octet > '9')
 			return 1;
+
+		++ipv4_octet;
 	}
 	return 0;
 
@@ -53,13 +54,16 @@ static int validate_ipv4_octet(char *ipv4_octet)
 static int str_to_ipv4(char *data, uint32_t *addr)
 {
 	char *token;
+	char buf[30];
 	char search[] = ".";
 	int shift = 24;
 	*addr = 0;
 	int ret;
 	int counter = 0;
+
+	strcpy(buf, data);
 	/* get the first token */
-	token = strtok(data, search);
+	token = strtok(buf, search);
 
 	/* walk through other tokens */
 	while( token != NULL && shift >= 0) {
@@ -76,6 +80,7 @@ static int str_to_ipv4(char *data, uint32_t *addr)
 	}
 	if(4 != counter)
 		printf("Invalid ipv4 address\n");
+
 	return counter == 4 ? 0 : 1;
 }
 
@@ -261,12 +266,16 @@ static int validate_params(char *filename, struct tester_params *data)
 
 
 	if(strlen(data->ipv4_dst_str) > 0 &&
-		str_to_ipv4(data->ipv4_dst_str, &data->ipv4_dst_int))
+		str_to_ipv4(data->ipv4_dst_str, &data->ipv4_dst_int)) {
+		printf("HER1\n");
 		ret = 1;
+	}
 
 	if(strlen(data->ipv4_src_str) > 0 &&
-		str_to_ipv4(data->ipv4_src_str, &data->ipv4_src_int))
+		str_to_ipv4(data->ipv4_src_str, &data->ipv4_src_int)) {
+		printf("HER\n");
 		ret = 1;
+	}
 
 	if(ret)
 		print_help(filename);
@@ -283,9 +292,6 @@ static int common_init()
 
 	return 0;
 }
-
-
-
 
 static int set_functions(struct tester_func *func, enum MODE mode)
 {
