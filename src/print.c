@@ -105,14 +105,17 @@ void print_ipv4_header(struct tester_params *data, const u_char *payload)
 
 void print_raw_packet(const u_char *data, int len)
 {
-	for(int i = 0 ; i < 0x10 ; ++i)
+	int i = 0;
+	for(; i < 0x10 ; ++i)
 		printf("0x%02x ", i);
 	printf("\n");
-	for(int i = 0 ; i < 0x10 ; ++i)
+	i = 0;
+	for(; i < 0x10 ; ++i)
 		printf("-----");
 
 
-	for(int i = 0; i < len ; ++i) {
+	i = 0;
+	for(; i < len ; ++i) {
 		if(0 == (i % 16)) printf("\n");
 		printf("0x%02x ", data[i]);
 	}

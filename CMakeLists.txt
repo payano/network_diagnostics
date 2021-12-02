@@ -4,7 +4,11 @@ cmake_minimum_required(VERSION 3.10)
 #set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 #set(CMAKE_CXX_FLAGS "-Wall -std=c++0x -pedantic -O2 -Werror -Wextra -fexceptions")
-set(CMAKE_CXX_FLAGS "-Wall -std=c++0x -pedantic -O0 -Werror -Wextra -fexceptions")
+#set(CMAKE_CC_FLAGS "-Wall -pedantic -O2 -Werror -Wextra -fexceptions -std=c99")
+#set(CMAKE_C_FLAGS "-Wall -pedantic -O2 -Werror -Wextra -fexceptions")
+set(CMAKE_CXX_FLAGS "-Wall -pedantic -O2 -Werror -Wextra -fexceptions -D_GNU_SOURCE")
+
+#add_definitions("-D_GNU_SOURCE=1")
 
 #set(CMAKE_CXX_STANDARD 14)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,6 +35,8 @@ add_subdirectory(ext/libpcap)
 #add_library(pcap STATIC IMPORTED)
 
 
+message(STATUS "include dir: ${CMAKE_CXX_FLAGS}")
+
 #print_all_variables()
 ############################################################
 # Create an executable
@@ -50,7 +56,7 @@ add_executable(
 target_link_libraries(network_tester ${pcap_BINARY_DIR}/libpcap.a)
 
 add_dependencies(network_tester pcap_static)
-
+include_directories(${CMAKE_SOURCE_DIR}/ext/libpcap)
 #google test
 #include_directories(cmake-build-debug/test/gtest/src/gtest/googletest/include)
 #add_subdirectory(test)

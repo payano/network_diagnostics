@@ -41,7 +41,8 @@ static int validate_ipv4_octet(char *ipv4_octet)
 	if(len > 3)
 		return 1;
 
-	for(int i = 0; i < len; ++i) {
+	int i = 0;
+	for(; i < len; ++i) {
 		if(*ipv4_octet < '0' || *ipv4_octet > '9')
 			return 1;
 
