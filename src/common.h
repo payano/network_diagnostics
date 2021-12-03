@@ -6,6 +6,10 @@
 #define INTERFACE_LEN 20
 #define PCAP_TIMEOUT 100
 
+#define _htobe16(value) ((value >> 8) & 0xFF) | ((value << 8) & 0xFF00)
+#define ETHER_TYPE_IPV4 0x0800
+#define ETHER_TYPE_IPV6 0x08DD
+
 struct mode_specific;
 
 enum MODE {

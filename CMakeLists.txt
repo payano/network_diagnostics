@@ -14,9 +14,9 @@ set(CMAKE_CXX_FLAGS "-Wall -pedantic -O2 -Werror -Wextra -fexceptions -D_GNU_SOU
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project (network_tester)
-find_package (Threads REQUIRED)
-find_package(OpenSSL REQUIRED)
-find_package(FLEX REQUIRED)
+#find_package (Threads REQUIRED)
+#find_package(OpenSSL REQUIRED)
+#find_package(FLEX REQUIRED)
 
 include_directories(src)
 
@@ -29,10 +29,9 @@ macro(print_all_variables)
     message(STATUS "print_all_variables------------------------------------------}")
 endmacro()
 
-set(DISABLE_DBUS ON)
-option(DISABLE_DBUS "Disable D-Bus sniffing support" ON)
-add_subdirectory(ext/libpcap)
-#add_library(pcap STATIC IMPORTED)
+#set(DISABLE_DBUS ON)
+#option(DISABLE_DBUS "Disable D-Bus sniffing support" ON)
+#add_subdirectory(ext/libpcap)
 
 
 message(STATUS "include dir: ${CMAKE_CXX_FLAGS}")
@@ -48,15 +47,14 @@ add_executable(
   src/client.c
   src/main.c
   src/receiver.c
-  src/pcap_helper.c
   src/listener.c
   src/print.c
 
 )
-target_link_libraries(network_tester ${pcap_BINARY_DIR}/libpcap.a)
+#target_link_libraries(network_tester ${pcap_BINARY_DIR}/libpcap.a)
+#add_dependencies(network_tester pcap_static)
 
-add_dependencies(network_tester pcap_static)
-include_directories(${CMAKE_SOURCE_DIR}/ext/libpcap)
+#include_directories(${CMAKE_SOURCE_DIR}/ext/libpcap)
 #google test
 #include_directories(cmake-build-debug/test/gtest/src/gtest/googletest/include)
 #add_subdirectory(test)

@@ -1,21 +1,35 @@
 #include <netinet/in.h>
-#include <pcap/pcap.h>
+#include <netinet/ether.h>
+#include <arpa/inet.h>
+#include <linux/if_packet.h>
+#include <linux/ip.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <net/if.h>
+
 #include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+
+#include <string.h>
 
 #include "listener.h"
 #include "print.h"
 #include "common.h"
 
 struct mode_specific {
-	pcap_t *pcap_handle;
+	int sockfd;
 };
+#define BUF_SIZ		1024
 
 int listener_init(struct tester_params *data)
 {
-	int ret;
-	char errbuf[PCAP_ERRBUF_SIZE];
-	struct bpf_program filter;
-	char filter_exp[100];
+	char sender[INET6_ADDRSTRLEN];
+	int ret, i;
+	int sockopt;
+	struct ifreq ifopts;	/* set promiscuous mode */
+	struct ifreq if_ip;	/* get ip addr */
+	struct sockaddr_storage their_addr;
 
 	data->specific = calloc(1, sizeof(struct mode_specific));
 	if(!data->specific) {
@@ -23,65 +37,47 @@ int listener_init(struct tester_params *data)
 		return 1;
 	}
 
-	data->specific->pcap_handle = pcap_create(data->eth_if, errbuf);
-	if(!data->specific->pcap_handle) {
-		printf("Error: pcap_create %s\n", errbuf);
-		return 1;
+	data->specific->sockfd = socket(PF_PACKET, SOCK_RAW,
+	                                _htobe16(ETHER_TYPE_IPV4));
+
+	if (-1 == data->specific->sockfd) {
+		perror("listener: socket");
+		return -1;
 	}
 
-	ret = pcap_set_timeout(data->specific->pcap_handle, PCAP_TIMEOUT);
-	if(ret) {
-		printf("Error setting timeout\n");
-		return ret;
+	/* Set interface to promiscuous mode - do we need to do this every time? */
+	printf("data->eth_if: %s\n", data->eth_if);
+	strncpy(ifopts.ifr_name, data->eth_if, IFNAMSIZ-1);
+	ioctl(data->specific->sockfd, SIOCGIFFLAGS, &ifopts);
+	ifopts.ifr_flags |= IFF_PROMISC;
+	ioctl(data->specific->sockfd, SIOCSIFFLAGS, &ifopts);
+	/* Allow the socket to be reused - incase connection is closed prematurely */
+	if (setsockopt(data->specific->sockfd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof sockopt) == -1) {
+		perror("setsockopt");
+		close(data->specific->sockfd);
+		exit(EXIT_FAILURE);
+	}
+	/* Bind to device */
+	if (setsockopt(data->specific->sockfd, SOL_SOCKET, SO_BINDTODEVICE, data->eth_if, IFNAMSIZ-1) == -1)	{
+		perror("SO_BINDTODEVICE");
+		close(data->specific->sockfd);
+		exit(EXIT_FAILURE);
 	}
 
-	ret = pcap_activate(data->specific->pcap_handle);
-	if(ret) {
-		printf("Error pcap_activate: %s\n", pcap_statustostr(ret));
-		return 1;
-	}
-
-//	snprintf(filter_exp, sizeof(filter_exp), "dst %s and src %s",
-//	         data->ipv4_dst_str, data->ipv4_src_str);
-//
-//	ret = pcap_compile(data->specific->pcap_handle, &filter,
-//	                   filter_exp, 0, PCAP_NETMASK_UNKNOWN);
-//	if(ret) {
-//		printf("Error compiling pcap filter\n");
-//		return ret;
-//	}
-//
-//	ret = pcap_setfilter(data->specific->pcap_handle, &filter);
-//	if(ret)
-//		printf("Error setting filter\n");
-
-	return ret;
+	return 0;
 }
 
 int listener_main(struct tester_params *data)
 {
-	struct pcap_pkthdr *pkt_header;
-	const u_char *pkt_data;
-	int ret;
+	uint8_t buf[BUF_SIZ];
+	ssize_t numbytes;
 
-	while(!data->exit_program) {
-		ret = pcap_next_ex(data->specific->pcap_handle, &pkt_header,
-		                   &pkt_data);
-
-		/* error reading packet */
-		if(1 != ret) {
-			printf("ERROR\n");
-			return 1;
-		}
-		print_eth_header(data, pkt_data);
-		print_ipv4_header(data, pkt_data);
-	}
+	numbytes = recvfrom(data->specific->sockfd, buf, BUF_SIZ, 0, NULL, NULL);
+	print_raw_packet(buf, numbytes);
 	return 0;
 }
 
 void listener_cleanup(struct tester_params *data)
 {
-	if(data->specific->pcap_handle)
-		pcap_close(data->specific->pcap_handle);
 	free(data->specific);
 }

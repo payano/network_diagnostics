@@ -12,7 +12,6 @@
 #include <signal.h>
 
 #include "common.h"
-#include "pcap_helper.h"
 #include "listener.h"
 #include "client.h"
 #include "receiver.h"
@@ -204,11 +203,9 @@ static int get_params(int argc, char *argv[], struct tester_params *data)
 		}
 	}
 
-	if (optind < argc) {
-		printf("zzzHERE\n");
-
+	if (optind < argc)
 		goto failure;
-	}
+
 
 	return 0;
 failure:
@@ -259,13 +256,13 @@ static int validate_params(char *filename, struct tester_params *data)
 		ret = 1;
 	}
 
-	if(pcap_helper_find_eth_if(data->eth_if)) {
+	if(find_eth_if(data->eth_if)) {
 		printf("Error: Invalid interface set\n");
 		printf("Available:\n");
-		pcap_helper_list_eth_if(data->eth_if);
+		print_eth_ifs();
 		ret = 1;
-	}
 
+	}
 
 	if(strlen(data->ipv4_dst_str) > 0 &&
 		str_to_ipv4(data->ipv4_dst_str, &data->ipv4_dst_int)) {
