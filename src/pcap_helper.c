@@ -11,6 +11,7 @@ int pcap_helper_list_eth_if(char *eth_if)
 {
 	int ret;
 	pcap_if_t *pcap_devs;
+	pcap_if_t *d;
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	ret = pcap_findalldevs(&pcap_devs, errbuf);
@@ -19,8 +20,7 @@ int pcap_helper_list_eth_if(char *eth_if)
 		return 1;
 	}
 
-	pcap_if_t *d = pcap_devs;
-	for (; d != NULL; d = d->next) {
+	for (d = pcap_devs ; d != NULL; d = d->next) {
 		pcap_addr_t *a;
 		for(a = d->addresses; a != NULL; a = a->next) {
 			struct sockaddr_in *sock_addr;
@@ -51,6 +51,7 @@ int pcap_helper_find_eth_if(char *eth_if)
 {
 	int ret;
 	pcap_if_t *pcap_devs;
+	pcap_if_t *d;
 	char errbuf[PCAP_ERRBUF_SIZE];
 
 	ret = pcap_findalldevs(&pcap_devs, errbuf);
@@ -60,8 +61,7 @@ int pcap_helper_find_eth_if(char *eth_if)
 	}
 
 	ret = -1;
-	pcap_if_t *d = pcap_devs;
-	for (; d != NULL; d = d->next) {
+	for (d = pcap_devs; d != NULL; d = d->next) {
 		pcap_addr_t *addr;
 		for(addr = d->addresses; addr != NULL; addr = addr->next) {
 			if (addr->addr->sa_family != AF_INET)

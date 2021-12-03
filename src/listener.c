@@ -41,19 +41,19 @@ int listener_init(struct tester_params *data)
 		return 1;
 	}
 
-	snprintf(filter_exp, sizeof(filter_exp), "dst %s and src %s",
-	         data->ipv4_dst_str, data->ipv4_src_str);
-
-	ret = pcap_compile(data->specific->pcap_handle, &filter,
-	                   filter_exp, 0, PCAP_NETMASK_UNKNOWN);
-	if(ret) {
-		printf("Error compiling pcap filter\n");
-		return ret;
-	}
-
-	ret = pcap_setfilter(data->specific->pcap_handle, &filter);
-	if(ret)
-		printf("Error setting filter\n");
+//	snprintf(filter_exp, sizeof(filter_exp), "dst %s and src %s",
+//	         data->ipv4_dst_str, data->ipv4_src_str);
+//
+//	ret = pcap_compile(data->specific->pcap_handle, &filter,
+//	                   filter_exp, 0, PCAP_NETMASK_UNKNOWN);
+//	if(ret) {
+//		printf("Error compiling pcap filter\n");
+//		return ret;
+//	}
+//
+//	ret = pcap_setfilter(data->specific->pcap_handle, &filter);
+//	if(ret)
+//		printf("Error setting filter\n");
 
 	return ret;
 }

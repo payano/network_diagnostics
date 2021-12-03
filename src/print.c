@@ -8,6 +8,8 @@
 #include "common.h"
 #include "print.h"
 
+#define _htobe16(value) ((value >> 8) & 0xFF) | ((value << 8) & 0xFF00)
+
 void print_help(char *filename)
 {
 	printf("Usage %s:\n", basename(filename));
@@ -22,7 +24,7 @@ void print_help(char *filename)
 	printf("  -v       vlan id\n");
 }
 
-char *get_ethertype(uint16_t ethertype)
+char *get_ethertype(const uint16_t ethertype)
 {
 	/* Source: https://en.wikipedia.org/wiki/EtherType */
 	switch(ethertype){
@@ -32,7 +34,7 @@ char *get_ethertype(uint16_t ethertype)
 	}
 }
 
-char *get_mode(enum MODE mode)
+char *get_mode(const enum MODE mode)
 {
 	switch(mode) {
 	case MODE_CLIENT:   return "Mode client";
@@ -42,7 +44,7 @@ char *get_mode(enum MODE mode)
 	}
 }
 
-char *get_ipv4_protocol(uint8_t protocol)
+char *get_ipv4_protocol(const uint8_t protocol)
 {
 	switch(protocol){
 	case 0x06: return "TCP";
@@ -70,7 +72,7 @@ void print_eth_header(struct tester_params *data, const u_char *payload)
 		ethertype++;
 	}
 
-	printf("ethertype: %s", get_ethertype(htobe16(*ethertype)));
+	printf("ethertype: %s", get_ethertype(_htobe16(*ethertype)));
 	printf("]\n");
 }
 
@@ -105,17 +107,16 @@ void print_ipv4_header(struct tester_params *data, const u_char *payload)
 
 void print_raw_packet(const u_char *data, int len)
 {
-	int i = 0;
-	for(; i < 0x10 ; ++i)
+	int i;
+
+	for(i = 0; i < 0x10 ; ++i)
 		printf("0x%02x ", i);
 	printf("\n");
-	i = 0;
-	for(; i < 0x10 ; ++i)
+
+	for(i = 0; i < 0x10 ; ++i)
 		printf("-----");
 
-
-	i = 0;
-	for(; i < len ; ++i) {
+	for(i = 0; i < len ; ++i) {
 		if(0 == (i % 16)) printf("\n");
 		printf("0x%02x ", data[i]);
 	}
@@ -127,9 +128,9 @@ void print_vlan_header(const uint16_t *vlan_hdr)
 	struct vlan_tpid vlan;
 	uint16_t *vlan16 = (uint16_t*)&vlan;
 	memcpy(&vlan, vlan_hdr, sizeof(vlan));
-	*vlan16 = htobe16(*vlan16);
+	*vlan16 = _htobe16(*vlan16);
 	vlan16++;
-	*vlan16 = htobe16(*vlan16);
+	*vlan16 = _htobe16(*vlan16);
 	printf("VLAN id: %d, pcp: %d, dei: %d\n",
 			vlan.vid, vlan.pcp, vlan.dei);
 }

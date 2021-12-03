@@ -36,13 +36,14 @@ static struct tester_data data = {0};
 static int validate_ipv4_octet(char *ipv4_octet)
 {
 	int len = strlen(ipv4_octet);
+	int i;
+
 	if(0 == len)
 		return 1;
 	if(len > 3)
 		return 1;
 
-	int i = 0;
-	for(; i < len; ++i) {
+	for(i = 0; i < len; ++i) {
 		if(*ipv4_octet < '0' || *ipv4_octet > '9')
 			return 1;
 
