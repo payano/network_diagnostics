@@ -152,8 +152,7 @@ int find_eth_if(const char *if_name)
 	ret = 1; /* if not found return not ok */
 	for(ifa = if_list; NULL != ifa; ifa = ifa->ifa_next)
 	{
-		/* only support ipv4 for now*/
-		if (!ifa->ifa_addr || AF_INET != ifa->ifa_addr->sa_family)
+		if (!ifa->ifa_addr)
 			continue;
 
 		if(!strcmp(ifa->ifa_name, if_name)) {
@@ -181,20 +180,21 @@ void print_eth_ifs()
 
 	for(ifa = if_list; NULL != ifa; ifa = ifa->ifa_next)
 	{
-		/* only support ipv4 for now*/
-		if (!ifa->ifa_addr || AF_INET != ifa->ifa_addr->sa_family)
+		if (!ifa->ifa_addr)
 			continue;
 
-		struct sockaddr_in *ifaddr = (struct sockaddr_in *)ifa->ifa_addr;
-		tmpAddrPtr= &ifaddr->sin_addr;
-		uint8_t *addr = tmpAddrPtr;
-
-		printf("  %s: [", ifa->ifa_name);
-		printf("%d.", addr[0]);
-		printf("%d.", addr[1]);
-		printf("%d.", addr[2]);
-		printf("%d",  addr[3]);
-		printf("]\n");
+		printf("  %s ", ifa->ifa_name);
+		if (AF_INET == ifa->ifa_addr->sa_family) {
+			struct sockaddr_in *ifaddr = (struct sockaddr_in *)ifa->ifa_addr;
+			tmpAddrPtr= &ifaddr->sin_addr;
+			uint8_t *addr = tmpAddrPtr;
+			printf("[%d.", addr[0]);
+			printf("%d.", addr[1]);
+			printf("%d.", addr[2]);
+			printf("%d",  addr[3]);
+			printf("]");
+		}
+		printf("\n");
 	}
 	freeifaddrs(if_list);
 }
