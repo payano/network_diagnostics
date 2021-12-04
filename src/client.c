@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 
 #include "common.h"
+#include "network_helper.h"
 #include "client.h"
 
 #define BUFLEN 512
@@ -43,9 +44,15 @@ int client_init(struct tester_params *data)
 
 static int send_tcp(struct tester_params *data)
 {
-	char buf[BUFLEN] = "TCP TEST";
-	int comm_len = strlen(buf);
 	int ret;
+	struct test_packet packet;
+
+//	char buf[BUFLEN] = "TCP TEST";
+//	int comm_len = strlen(buf);
+	network_helper_init_packet(&packet);
+	int comm_len = sizeof(packet);
+	printf("comm_len:%d\n", comm_len);
+
 
 	socklen_t addr_size = sizeof(data->specific->sock_addr);
 
@@ -56,7 +63,7 @@ static int send_tcp(struct tester_params *data)
 		perror("connect");
 		return 1;
 	}
-	comm_len = send(data->specific->socket, buf, comm_len, 0);
+	comm_len = send(data->specific->socket, &packet, comm_len, 0);
 	if(comm_len < 0) {
 		perror("sendto()");
 		/* need to cleanup here...*/

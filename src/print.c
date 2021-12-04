@@ -5,8 +5,6 @@
 #include <sys/types.h>
 #include <string.h>
 
-#include <ifaddrs.h>
-#include <linux/in.h>
 
 #include "common.h"
 #include "print.h"
@@ -135,67 +133,3 @@ void print_vlan_header(const uint16_t *vlan_hdr)
 	printf("VLAN id: %d, pcp: %d, dei: %d\n",
 			vlan.vid, vlan.pcp, vlan.dei);
 }
-
-/* misplaced for now */
-int find_eth_if(const char *if_name)
-{
-	struct ifaddrs *if_list;
-	struct ifaddrs *ifa;
-	int ret;
-
-	ret = getifaddrs(&if_list);
-	if(ret) {
-		perror("getifaddrs");
-		return 1;
-	}
-
-	ret = 1; /* if not found return not ok */
-	for(ifa = if_list; NULL != ifa; ifa = ifa->ifa_next)
-	{
-		if (!ifa->ifa_addr)
-			continue;
-
-		if(!strcmp(ifa->ifa_name, if_name)) {
-			ret = 0;
-			break;
-		}
-	}
-
-	freeifaddrs(if_list);
-	return ret;
-}
-
-void print_eth_ifs()
-{
-	struct ifaddrs *if_list;
-	struct ifaddrs *ifa;
-	int ret;
-	void *tmpAddrPtr;
-
-	ret = getifaddrs(&if_list);
-	if(ret) {
-		perror("getifaddrs");
-		return;
-	}
-
-	for(ifa = if_list; NULL != ifa; ifa = ifa->ifa_next)
-	{
-		if (!ifa->ifa_addr)
-			continue;
-
-		printf("  %s ", ifa->ifa_name);
-		if (AF_INET == ifa->ifa_addr->sa_family) {
-			struct sockaddr_in *ifaddr = (struct sockaddr_in *)ifa->ifa_addr;
-			tmpAddrPtr= &ifaddr->sin_addr;
-			uint8_t *addr = tmpAddrPtr;
-			printf("[%d.", addr[0]);
-			printf("%d.", addr[1]);
-			printf("%d.", addr[2]);
-			printf("%d",  addr[3]);
-			printf("]");
-		}
-		printf("\n");
-	}
-	freeifaddrs(if_list);
-}
-

@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include "network_helper.h"
 #include "common.h"
 #include "receiver.h"
 
@@ -96,6 +97,7 @@ static int recv_udp(struct tester_params *data)
 
 static int recv_tcp(struct tester_params *data)
 {
+	struct test_packet packet;
 	char buf[BUFLEN];
 	int clientfd;
 	int ret;
@@ -118,24 +120,32 @@ static int recv_tcp(struct tester_params *data)
 			printf("Waiting for data...");
 			fflush(stdout);
 
-			comm_len = recv(clientfd, buf, BUFLEN, 0);
+			comm_len = recv(clientfd, &packet, sizeof(packet), 0);
 			if(comm_len < 1) {
 				printf("Connection closed.\n");
 				close(clientfd);
 				break;
 			};
-			//print details of the client/peer and the data received
+
+			struct timespec ts;
+			ts.tv_sec = packet.ts_sec;
+			ts.tv_nsec = packet.ts_nsec;
+			uint64_t result;
+			network_helper_compare(&ts, &result);
+
+			printf("comm_len: %d\n", comm_len);
 			printf("Received packet from %s:%d\n",
 			       inet_ntoa(si_other.sin_addr),
 			       ntohs(si_other.sin_port));
 			printf("Data: %s\n" , buf);
 
-			comm_len = send(clientfd, buf, comm_len, 0);
-			if(comm_len < 0) {
-				perror("sendto()");
-				/* need to cleanup here...*/
-				return 1;
-			}
+//
+//			comm_len = send(clientfd, buf, comm_len, 0);
+//			if(comm_len < 0) {
+//				perror("sendto()");
+//				/* need to cleanup here...*/
+//				return 1;
+//			}
 		}
 		close(clientfd);
 	}

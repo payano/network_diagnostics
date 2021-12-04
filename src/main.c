@@ -16,6 +16,7 @@
 #include "client.h"
 #include "receiver.h"
 #include "print.h"
+#include "network_helper.h"
 
 #define VLAN_TPID 0x8100
 
@@ -222,16 +223,13 @@ static int validate_params(char *filename, struct tester_params *data)
 		ret = 1;
 	}
 
-	if(MODE_CLIENT == data->mode && strlen(data->ipv4_dst_str) < 1) {
-		printf("Error: No destination ip address set\n");
-		ret = 1;
-	} else if(MODE_LISTENER == data->mode) {
+	if(MODE_CLIENT == data->mode) {
 		if(strlen(data->ipv4_dst_str) < 1) {
 			printf("Error: No destination ip address set\n");
 			ret = 1;
 		}
-		if(strlen(data->ipv4_src_str) < 1) {
-			printf("Error: No source ip address set\n");
+		if(!data->port) {
+			printf("Error: No source port set\n");
 			ret = 1;
 		}
 	} else if(MODE_RECEIVER == data->mode) {
@@ -256,23 +254,21 @@ static int validate_params(char *filename, struct tester_params *data)
 		ret = 1;
 	}
 
-	if(find_eth_if(data->eth_if)) {
+	if(network_helper_find_eth_if(data->eth_if)) {
 		printf("Error: Invalid interface set\n");
 		printf("Available:\n");
-		print_eth_ifs();
+		network_helper_print_eth_ifs();
 		ret = 1;
 
 	}
 
 	if(strlen(data->ipv4_dst_str) > 0 &&
 		str_to_ipv4(data->ipv4_dst_str, &data->ipv4_dst_int)) {
-		printf("HER1\n");
 		ret = 1;
 	}
 
 	if(strlen(data->ipv4_src_str) > 0 &&
 		str_to_ipv4(data->ipv4_src_str, &data->ipv4_src_int)) {
-		printf("HER\n");
 		ret = 1;
 	}
 

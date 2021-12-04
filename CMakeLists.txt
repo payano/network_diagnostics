@@ -44,8 +44,9 @@ message(STATUS "include dir: ${CMAKE_CXX_FLAGS}")
 # Add an executable with the above sources
 add_executable(
   network_tester
-  src/client.c
   src/main.c
+  src/client.c
+  src/network_helper.c
   src/receiver.c
   src/listener.c
   src/print.c

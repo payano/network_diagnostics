@@ -62,4 +62,9 @@ struct ipv4_header {
 	uint32_t dest_address:32;
 };
 
-
+#define PAYLOAD_SZ 4
+struct test_packet {
+	uint64_t ts_sec;
+	uint64_t ts_nsec;
+	uint8_t payload[PAYLOAD_SZ];
+};
