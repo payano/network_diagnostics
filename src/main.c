@@ -87,6 +87,7 @@ static int str_to_ipv4(char *data, uint32_t *addr)
 }
 
 void signal_handler(int sig){
+	(void)sig;
 	/* bail out... */
 	static int count = 0;
 	data.params.exit_program = 1;

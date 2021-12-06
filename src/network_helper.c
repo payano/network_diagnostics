@@ -10,10 +10,9 @@
 #include "network_helper.h"
 #include "common.h"
 
-int network_helper_init_packet(struct test_packet *packet)
+int network_helper_init_packet(struct test_packet *packet, uint16_t hdr_type)
 {
 	struct timespec ts;
-	int i;
 
 	if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
 		perror("clock_gettime");
@@ -22,30 +21,33 @@ int network_helper_init_packet(struct test_packet *packet)
 
 	packet->ts_sec  = ts.tv_sec;
 	packet->ts_nsec = ts.tv_nsec;
-
-	for(i = 0; i < PAYLOAD_SZ; ++i) {
-		packet->payload[i] = i;
-	}
-
+	packet->hdr.type = hdr_type;
+	packet->hdr.version = HEADER_VERSION;
 	return 0;
 }
 
 /* Will give ms difference */
-int network_helper_compare(struct timespec *ts1, uint64_t *result)
-{
-	struct timespec ts;
-	if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-		perror("clock_gettime");
-		return EXIT_FAILURE;
-	}
-
-	ts.tv_sec -= ts1->tv_sec;
-	ts.tv_nsec -= ts1->tv_nsec;
-	float sec = ts.tv_sec + (ts.tv_nsec * 1e-9);
-
-	printf("delay[s]: %f\n", sec);
-	return 0;
-}
+//int network_helper_compare(struct test_packet *packet, int sz)
+//{
+//	struct timespec ts;
+//	if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+//		perror("clock_gettime");
+//		return EXIT_FAILURE;
+//	}
+//
+//	printf("Packet information [\n");
+//
+//	ts.tv_sec -= packet->ts_sec;
+//	ts.tv_nsec -= packet->ts_nsec;
+//	float sec = ts.tv_sec + (ts.tv_nsec * 1e-9);
+//
+//	printf("  type: 0x%x\n", packet->hdr.type);
+//	printf("  version: 0x%x\n", packet->hdr.version);
+//
+//	printf("  delay[s]: %f\n", sec);
+//	printf("]\n");
+//	return 0;
+//}
 
 
 int network_helper_find_eth_if(const char *if_name)
@@ -108,4 +110,29 @@ void network_helper_print_eth_ifs()
 		printf("\n");
 	}
 	freeifaddrs(if_list);
+}
+
+int network_helper_vlan_found(uint8_t *eth_type)
+{
+	void *eth_v = eth_type;
+	uint16_t *eth16 = eth_v;
+	return *eth16 == _htobe16(0x8100) ? 1 : 0;
+
+}
+
+int network_helper_valid_hdr_type(uint16_t ver)
+{
+	switch(ver){
+	case HEADER_RESP_CLIENT: /* fall-through */
+	case HEADER_RESP_SERVER: return 0;
+	default: return 1;
+	}
+}
+
+int network_helper_valid_hdr_version(uint16_t ver)
+{
+	switch(ver){
+	case HEADER_VERSION: return 0;
+	default: return 1;
+	}
 }

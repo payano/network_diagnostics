@@ -5,8 +5,8 @@ cmake_minimum_required(VERSION 3.10)
 
 #set(CMAKE_CXX_FLAGS "-Wall -std=c++0x -pedantic -O2 -Werror -Wextra -fexceptions")
 #set(CMAKE_CC_FLAGS "-Wall -pedantic -O2 -Werror -Wextra -fexceptions -std=c99")
-#set(CMAKE_C_FLAGS "-Wall -pedantic -O2 -Werror -Wextra -fexceptions")
-set(CMAKE_CXX_FLAGS "-Wall -pedantic -O2 -Werror -Wextra -fexceptions -D_GNU_SOURCE")
+set(CMAKE_C_FLAGS "-Wall -pedantic -O2 -Werror -Wextra -fexceptions")
+#set(CMAKE_CXX_FLAGS "-Wall -pedantic -O2 -Werror -Wextra -fexceptions -D_GNU_SOURCE")
 
 #add_definitions("-D_GNU_SOURCE=1")
 
@@ -47,6 +47,7 @@ add_executable(
   src/main.c
   src/client.c
   src/network_helper.c
+  src/comm_helper.c
   src/receiver.c
   src/listener.c
   src/print.c

@@ -3,10 +3,12 @@
 #include <stdint.h>
 
 #define IPV4_ADDR_LEN 16
-#define INTERFACE_LEN 20
 #define PCAP_TIMEOUT 100
+#define IFNAMESZ 16
 
-#define _htobe16(value) ((value >> 8) & 0xFF) | ((value << 8) & 0xFF00)
+#define _htobe16(value) (((value >> 8) & 0xFF) | ((value << 8) & 0xFF00))
+#define _htobe32(value) (((value & 0xFF) << 24) | ((value & 0xFF00) << 8) | ((value & 0xFF0000) >> 8) | ((value & 0xFF000000) >> 24))
+
 #define ETHER_TYPE_IPV4 0x0800
 #define ETHER_TYPE_IPV6 0x08DD
 
@@ -30,13 +32,13 @@ struct tester_params {
 	uint32_t ipv4_dst_int;
 	char ipv4_src_str[IPV4_ADDR_LEN];
 	uint32_t ipv4_src_int;
-	char eth_if[INTERFACE_LEN];
+	char eth_if[IFNAMESZ];
 	int vlan;
 	enum PROTO eth_proto;
 	enum MODE mode;
 	int port;
 	struct mode_specific *specific;
-	int exit_program;
+	volatile int exit_program;
 };
 
 struct vlan_tpid {
@@ -62,9 +64,32 @@ struct ipv4_header {
 	uint32_t dest_address:32;
 };
 
-#define PAYLOAD_SZ 4
+struct ipv4_tcp_header {
+	uint16_t src_port;
+	uint16_t dst_port;
+	uint32_t seq_nr;
+	uint32_t ack;
+	uint16_t reserved:4; /* data_offset and reserved are htobe16 fixing here */
+	uint16_t data_offset:4;
+};
+
+struct ipv4_udp_header {
+	uint16_t src_port;
+	uint16_t dst_port;
+	uint16_t length;
+	uint16_t checksum;
+};
+
+#define HEADER_RESP_SERVER 0xBE01
+#define HEADER_RESP_CLIENT 0xBE02
+#define HEADER_VERSION 0x1234
+struct test_header {
+	uint16_t type;
+	uint16_t version;
+};
+
 struct test_packet {
+	struct test_header hdr;
 	uint64_t ts_sec;
 	uint64_t ts_nsec;
-	uint8_t payload[PAYLOAD_SZ];
 };

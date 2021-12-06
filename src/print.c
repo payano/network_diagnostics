@@ -7,6 +7,7 @@
 
 
 #include "common.h"
+#include "network_helper.h"
 #include "print.h"
 
 void print_help(char *filename)
@@ -33,7 +34,7 @@ char *get_ethertype(const uint16_t ethertype)
 	}
 }
 
-char *get_mode(const enum MODE mode)
+char *get_mode(const int mode)
 {
 	switch(mode) {
 	case MODE_CLIENT:   return "Mode client";
@@ -75,18 +76,13 @@ void print_eth_header(struct tester_params *data, const u_char *payload)
 	printf("]\n");
 }
 
-void print_ipv4_header(struct tester_params *data, const u_char *payload)
+void print_ipv4_header(const uint8_t *payload)
 {
-	const uint16_t *vlan_tpid = (const uint16_t *)&payload[12];
-	const u_char *ip_hdr_ptr = (const u_char *)(vlan_tpid+1);
-	const struct ipv4_header *header;
+	struct ipv4_header *header;
 
-	if(data->vlan)
-		ip_hdr_ptr = (const u_char *)(vlan_tpid+2);
+	header = (struct ipv4_header*)payload;
 
-	header = (struct ipv4_header*)ip_hdr_ptr;
-
-	printf("IPV4 header [");
+	printf(" IPV4 header [");
 
 	printf("protocol: %s, ", get_ipv4_protocol(header->protocol));
 
@@ -133,3 +129,54 @@ void print_vlan_header(const uint16_t *vlan_hdr)
 	printf("VLAN id: %d, pcp: %d, dei: %d\n",
 			vlan.vid, vlan.pcp, vlan.dei);
 }
+
+void print_mac_dst_src(const uint8_t *mac)
+{
+	printf("MAC dst [");
+	printf("%02x:%02x:%02x:%02x:%02x:%02x",
+	       mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	printf("], src [");
+	printf("%02x:%02x:%02x:%02x:%02x:%02x",
+	       mac[6], mac[7], mac[8], mac[9], mac[10], mac[11]);
+	printf("]\n");
+}
+
+static void print_tcp4_header(const uint8_t *data)
+{
+	struct ipv4_tcp_header *tcp = (struct ipv4_tcp_header *)data;
+
+	printf("  TCP4 header [");
+	printf("dst port: %d, src port: %d", _htobe16(tcp->dst_port),
+	       _htobe16(tcp->src_port));
+	printf("]\n");
+}
+
+static void print_udp4_header(const uint8_t *data)
+{
+	struct ipv4_udp_header *udp = (struct ipv4_udp_header *)data;
+
+	printf("  UDP4 header [");
+	printf("dst port: %d, src port: %d", _htobe16(udp->dst_port),
+	       _htobe16(udp->src_port));
+	printf("]\n");
+}
+
+void print_l4_header(uint8_t *data)
+{
+	struct ipv4_header *header;
+	header = (struct ipv4_header *)data;
+
+	switch(header->protocol) {
+	case 0x06:
+		print_tcp4_header(data + sizeof(*header));
+		break;
+	case 0x11:
+		print_udp4_header(data + sizeof(*header));
+	break;
+	default:
+	break;
+	}
+
+}
+
+
