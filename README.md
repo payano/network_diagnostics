@@ -12,7 +12,7 @@ Usage network_tester:
   -i       Network interface to use
   -d       Destination address to send data (used with -c)
   -p       port number
-  -s       Source address to send data (used with -c)
+  -s       Source address to send data (used with -r)
   -t       ethernet protocol (tcp or udp)
   -v       vlan id
 </pre>
