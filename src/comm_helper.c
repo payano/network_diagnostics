@@ -42,7 +42,7 @@ struct mode_specific {
 };
 
 /* HANDLER */
-static int handle_recv(struct comm_data *comm)
+static int handle_recv(struct comm_data *comm, struct sockaddr_in *sock)
 {
 	if(sizeof(comm->packet) != comm->comm_len)
 		return 1;
@@ -66,8 +66,8 @@ static int handle_recv(struct comm_data *comm)
 	ts.tv_nsec -= comm->packet.ts_nsec;
 	float sec = ts.tv_sec + (ts.tv_nsec * 1e-9);
 
-	printf("  from: %s:%d\n", inet_ntoa(comm->sock_other.sin_addr),
-	       ntohs(comm->sock_other.sin_port));
+	printf("  from: %s:%d\n", inet_ntoa(sock->sin_addr),
+	       ntohs(sock->sin_port));
 	printf("  type: %s\n", get_test_packet_type(comm->packet.hdr.type));
 	printf("  version: %s\n",
 	       get_test_packet_version(comm->packet.hdr.version));
@@ -82,7 +82,6 @@ static int handle_recv(struct comm_data *comm)
 		printf("Round tip delay delay[s]: %f\n", sec);
 	}
 	return 0;
-
 }
 
 static void handle_send(struct test_packet *packet, enum MODE mode,
@@ -327,7 +326,7 @@ static int tcp_server_recv(struct comm_data *comm)
 		return 1;
 	};
 
-	return handle_recv(comm);
+	return handle_recv(comm, &comm->sock_other);
 }
 
 static int udp_server_recv(struct comm_data *comm)
@@ -342,7 +341,7 @@ static int udp_server_recv(struct comm_data *comm)
 		return 1;
 	}
 
-	return handle_recv(comm);
+	return handle_recv(comm, &comm->sock_other);
 }
 
 static int tcp_client_recv(struct comm_data *comm)
@@ -356,7 +355,7 @@ static int tcp_client_recv(struct comm_data *comm)
 		return 1;
 	};
 
-	return handle_recv(comm);
+	return handle_recv(comm, &comm->sock_addr);
 }
 
 static int udp_client_recv(struct comm_data *comm)
@@ -372,7 +371,7 @@ static int udp_client_recv(struct comm_data *comm)
 		return 1;
 	}
 
-	return handle_recv(comm);
+	return handle_recv(comm, &comm->sock_other);
 }
 
 static int raw_recv(struct comm_data *comm)
