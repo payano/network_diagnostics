@@ -153,9 +153,9 @@ static void handle_recv_raw(uint8_t *data, int sz)
 		return;
 	}
 
-	ts.tv_sec -= packet->ts_sec;
-	ts.tv_nsec -= packet->ts_nsec;
-	float sec = ts.tv_sec + (ts.tv_nsec * 1e-9);
+	float sec = 0;
+	sec += ts.tv_sec - packet->ts_sec;
+	sec += (ts.tv_nsec - packet->ts_nsec)* 1e-9;
 
 	printf("   Packet information [\n");
 	printf("    type: %s\n", get_test_packet_type(packet->hdr.type));
