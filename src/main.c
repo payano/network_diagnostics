@@ -244,7 +244,7 @@ static int validate_params(char *filename, struct tester_params *data)
 		}
 	}
 
-	if(PROTO_NONE == data->eth_proto) {
+	if(MODE_LISTENER != data->mode && PROTO_NONE == data->eth_proto) {
 		printf("Error: No eth proto is set\n");
 		ret = 1;
 

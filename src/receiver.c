@@ -1,10 +1,3 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-
 #include "common.h"
 #include "comm_helper.h"
 #include "receiver.h"

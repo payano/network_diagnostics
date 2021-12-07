@@ -1,8 +1,6 @@
-#include <string.h>
-
+#include "comm_helper.h"
 #include "common.h"
 #include "listener.h"
-#include "comm_helper.h"
 
 int listener_init(struct tester_params *data)
 {

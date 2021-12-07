@@ -3,7 +3,9 @@
 struct test_packet;
 struct timespec;
 
-int network_helper_init_packet(struct test_packet *packet, uint16_t);
+int network_helper_get_time(struct timespec *);
+int network_helper_init_packet(struct test_packet *packet, uint16_t,
+                               struct timespec *);
 void network_helper_print_packet(struct test_packet *packet);
 //int network_helper_compare(struct test_packet *, int);
 

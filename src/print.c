@@ -132,10 +132,10 @@ void print_vlan_header(const uint16_t *vlan_hdr)
 
 void print_mac_dst_src(const uint8_t *mac)
 {
-	printf("MAC dst [");
+	printf("MAC [dst ");
 	printf("%02x:%02x:%02x:%02x:%02x:%02x",
 	       mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-	printf("], src [");
+	printf(", src ");
 	printf("%02x:%02x:%02x:%02x:%02x:%02x",
 	       mac[6], mac[7], mac[8], mac[9], mac[10], mac[11]);
 	printf("]\n");
@@ -177,6 +177,23 @@ void print_l4_header(uint8_t *data)
 	break;
 	}
 
+}
+
+char *get_test_packet_type(uint16_t type)
+{
+	switch(type) {
+	case HEADER_RESP_SERVER: return "SERVER_SENDER";
+	case HEADER_RESP_CLIENT: return "CLIENT_SENDER";
+	default: return "UNSUPPORTED";
+	}
+}
+
+char *get_test_packet_version(uint16_t version)
+{
+	switch(version) {
+	case HEADER_VERSION: return "V1.0";
+	default: return "UNSUPPORTED";
+	}
 }
 
 

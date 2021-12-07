@@ -26,6 +26,9 @@ struct comm_data {
 	int ret;
 	int comm_len;
 	socklen_t addr_size;
+
+	/* For clients to get the RTT time*/
+	struct timespec ts;
 };
 
 struct mode_specific {
@@ -38,17 +41,15 @@ struct mode_specific {
 
 };
 
-
 /* HANDLER */
-static int handle_recv(struct sockaddr_in *conn,
-                       struct test_packet *packet, int sz)
+static int handle_recv(struct comm_data *comm)
 {
-	if(sizeof(*packet) != sz)
+	if(sizeof(comm->packet) != comm->comm_len)
 		return 1;
 
 	/* check if there is a correct packet*/
-	if(network_helper_valid_hdr_type(packet->hdr.type) ||
-		network_helper_valid_hdr_version(packet->hdr.version)) {
+	if(network_helper_valid_hdr_type(comm->packet.hdr.type) ||
+		network_helper_valid_hdr_version(comm->packet.hdr.version)) {
 		printf("Wrong packet arrived...\n");
 		return 1;
 	}
@@ -61,27 +62,35 @@ static int handle_recv(struct sockaddr_in *conn,
 
 	printf("Packet information [\n");
 
-	ts.tv_sec -= packet->ts_sec;
-	ts.tv_nsec -= packet->ts_nsec;
+	ts.tv_sec -= comm->packet.ts_sec;
+	ts.tv_nsec -= comm->packet.ts_nsec;
 	float sec = ts.tv_sec + (ts.tv_nsec * 1e-9);
 
-	printf("  from: %s:%d\n", inet_ntoa(conn->sin_addr),
-	       ntohs(conn->sin_port));
-	printf("  length: %d\n", sz);
-	printf("  type: 0x%x\n", packet->hdr.type);
-	printf("  version: 0x%x\n", packet->hdr.version);
-
+	printf("  from: %s:%d\n", inet_ntoa(comm->sock_other.sin_addr),
+	       ntohs(comm->sock_other.sin_port));
+	printf("  type: %s\n", get_test_packet_type(comm->packet.hdr.type));
+	printf("  version: %s\n",
+	       get_test_packet_version(comm->packet.hdr.version));
 	printf("  delay[s]: %f [timestamp from client and server]\n", sec);
 	printf("]\n");
+	if(HEADER_RESP_SERVER == comm->packet.hdr.type) {
+		struct timespec time_end;
+		if(network_helper_get_time(&time_end)) return 1;
+		time_end.tv_sec -= comm->packet.ts_sec;
+		time_end.tv_nsec -= comm->packet.ts_nsec;
+		float sec = time_end.tv_sec + (time_end.tv_nsec * 1e-9);
+		printf("Round tip delay delay[s]: %f\n", sec);
+	}
 	return 0;
 
 }
 
-static void handle_send(struct test_packet *packet, enum MODE mode)
+static void handle_send(struct test_packet *packet, enum MODE mode,
+                        struct timespec *ts)
 {
 	uint16_t hdr_type = mode ==
 		MODE_CLIENT ? HEADER_RESP_CLIENT : HEADER_RESP_SERVER;
-	network_helper_init_packet(packet, hdr_type);
+	network_helper_init_packet(packet, hdr_type, ts);
 }
 
 static int get_ipv4_payload(uint8_t *ipv4_hdr, uint8_t **payload)
@@ -138,14 +147,26 @@ static void handle_recv_raw(uint8_t *data, int sz)
 		return;
 	}
 
-//	hdr_sz += sizeof(struct ipv4_header) + sizeof(struct test_packet);
-//	printf("sz %d, expected: %d\n", sz, hdr_sz);
-//	printf("eth: %d, ipv4: %ld, packet: %ld\n", 14, sizeof(struct ipv4_header), sizeof(struct test_packet));
 	print_mac_dst_src(data);
 	print_ipv4_header(ipv4);
 	print_l4_header(ipv4);
-//	print_raw_packet(data, sz);
 
+	struct timespec ts;
+	if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+		perror("clock_gettime");
+		return;
+	}
+
+	ts.tv_sec -= packet->ts_sec;
+	ts.tv_nsec -= packet->ts_nsec;
+	float sec = ts.tv_sec + (ts.tv_nsec * 1e-9);
+
+	printf("   Packet information [\n");
+	printf("    type: %s\n", get_test_packet_type(packet->hdr.type));
+	printf("    version: %s\n",
+	       get_test_packet_version(packet->hdr.version));
+	printf("    delay[s]: %f [timestamp from sender and listener]\n", sec);
+	printf("   ]\n");
 }
 
 /* INIT */
@@ -239,9 +260,6 @@ int raw_init(struct tester_params *data)
 		perror("bind");
 		return 1;
 	}
-
-	printf("Preparing to receive from socket %d\n",
-	       data->specific->comm.socket);
 	return 0;
 }
 
@@ -309,8 +327,7 @@ static int tcp_server_recv(struct comm_data *comm)
 		return 1;
 	};
 
-	return handle_recv(&comm->sock_other, &comm->packet,
-	                          comm->comm_len);
+	return handle_recv(comm);
 }
 
 static int udp_server_recv(struct comm_data *comm)
@@ -325,8 +342,7 @@ static int udp_server_recv(struct comm_data *comm)
 		return 1;
 	}
 
-	return handle_recv(&comm->sock_other, &comm->packet,
-	                          comm->comm_len);
+	return handle_recv(comm);
 }
 
 static int tcp_client_recv(struct comm_data *comm)
@@ -340,8 +356,7 @@ static int tcp_client_recv(struct comm_data *comm)
 		return 1;
 	};
 
-	return handle_recv(&comm->sock_other, &comm->packet,
-	                          comm->comm_len);
+	return handle_recv(comm);
 }
 
 static int udp_client_recv(struct comm_data *comm)
@@ -357,13 +372,12 @@ static int udp_client_recv(struct comm_data *comm)
 		return 1;
 	}
 
-	return handle_recv(&comm->sock_other, &comm->packet,
-	                          comm->comm_len);
+	return handle_recv(comm);
 }
 
 static int raw_recv(struct comm_data *comm)
 {
-	uint8_t rbuff[8192];
+	uint8_t rbuff[1024];
 	int rx = recv(comm->socket, rbuff, sizeof(rbuff), 0);
 	handle_recv_raw(rbuff, rx);
 	return 0;
@@ -372,7 +386,7 @@ static int raw_recv(struct comm_data *comm)
 /* SEND */
 static int tcp_server_send(struct comm_data *comm)
 {
-	handle_send(&comm->packet, MODE_LISTENER);
+	handle_send(&comm->packet, MODE_LISTENER, NULL);
 
 	comm->comm_len = send(comm->tcp_clientfd, &comm->packet,
 	                      sizeof(comm->packet), 0);
@@ -386,7 +400,7 @@ static int tcp_server_send(struct comm_data *comm)
 
 static int udp_server_send(struct comm_data *comm)
 {
-	handle_send(&comm->packet, MODE_LISTENER);
+	handle_send(&comm->packet, MODE_LISTENER, NULL);
 
 	comm->comm_len = sendto(comm->socket, &comm->packet,
 	                        sizeof(comm->packet), 0,
@@ -402,7 +416,8 @@ static int udp_server_send(struct comm_data *comm)
 
 static int tcp_client_send(struct comm_data *comm)
 {
-	handle_send(&comm->packet, MODE_CLIENT);
+	network_helper_get_time(&comm->ts);
+	handle_send(&comm->packet, MODE_CLIENT, &comm->ts);
 
 	comm->comm_len = send(comm->socket, &comm->packet,
 	                      sizeof(comm->packet), 0);
@@ -417,7 +432,8 @@ static int tcp_client_send(struct comm_data *comm)
 
 static int udp_client_send(struct comm_data *comm)
 {
-	handle_send(&comm->packet, MODE_CLIENT);
+	network_helper_get_time(&comm->ts);
+	handle_send(&comm->packet, MODE_CLIENT, &comm->ts);
 
 	comm->comm_len = sendto(comm->socket, &comm->packet,
 	                        sizeof(comm->packet), 0,
@@ -487,8 +503,6 @@ int comm_helper_init(struct tester_params *data)
 		data->specific->recv       = raw_recv;
 		data->specific->send       = NULL;
 		data->specific->end_comm   = NULL;
-
-		printf("FILE: %s, FUNC: %s, LINE: %d\n", __FILE__, __func__, __LINE__);
 		break;
 	default: abort();
 	}

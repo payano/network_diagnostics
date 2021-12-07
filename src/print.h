@@ -12,3 +12,5 @@ void print_raw_packet(const u_char *, int);
 void print_vlan_header(const uint16_t *);
 void print_mac_dst_src(const uint8_t *);
 void print_l4_header(uint8_t *);
+char *get_test_packet_type(uint16_t);
+char *get_test_packet_version(uint16_t);

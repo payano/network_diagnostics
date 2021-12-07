@@ -10,17 +10,30 @@
 #include "network_helper.h"
 #include "common.h"
 
-int network_helper_init_packet(struct test_packet *packet, uint16_t hdr_type)
+int network_helper_get_time(struct timespec *ts)
 {
-	struct timespec ts;
-
-	if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+	if (clock_gettime(CLOCK_REALTIME, ts) == -1) {
 		perror("clock_gettime");
 		return EXIT_FAILURE;
 	}
+	return 0;
+}
 
-	packet->ts_sec  = ts.tv_sec;
-	packet->ts_nsec = ts.tv_nsec;
+int network_helper_init_packet(struct test_packet *packet, uint16_t hdr_type,
+                               struct timespec *time)
+{
+	struct timespec ts;
+	struct timespec *time_ptr;
+
+	if(!time) {
+		time_ptr = &ts;
+		network_helper_get_time(time_ptr);
+	} else {
+		time_ptr = time;
+	}
+
+	packet->ts_sec  = time_ptr->tv_sec;
+	packet->ts_nsec = time_ptr->tv_nsec;
 	packet->hdr.type = hdr_type;
 	packet->hdr.version = HEADER_VERSION;
 	return 0;

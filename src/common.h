@@ -82,7 +82,7 @@ struct ipv4_udp_header {
 
 #define HEADER_RESP_SERVER 0xBE01
 #define HEADER_RESP_CLIENT 0xBE02
-#define HEADER_VERSION 0x1234
+#define HEADER_VERSION 0x3001
 struct test_header {
 	uint16_t type;
 	uint16_t version;
