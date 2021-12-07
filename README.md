@@ -3,6 +3,20 @@
 # network_diagnostics
 A tool to diagnoze network, test if firewalls, vlan, latency is in order.
 
+## Usage
+<pre>
+Usage network_tester:
+  -c       Mode client   (sends data to server)
+  -r       Mode receiver (receives data from client)
+  -l       Mode listener (listens to data from client)
+  -i       Network interface to use
+  -d       Destination address to send data (used with -c)
+  -p       port number
+  -s       Source address to send data (used with -c)
+  -t       ethernet protocol (tcp or udp)
+  -v       vlan id
+</pre>
+
 ## Supported platforms
 * Asus rt-ac66u
 * Linux
