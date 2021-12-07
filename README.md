@@ -48,7 +48,7 @@ One thing to notice, is that the application can print out when the packet was r
 Then we can see the delays between different nodes on the network, to be able to pinpoint delay issues.<br/>
 
 ## Supported features will be:
-* vlan
+* vlan [ if requested ]
 * network latency
 * multiple servers to capture the packet along the way to the endpoint node
 * Suggestions?
