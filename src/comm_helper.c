@@ -55,18 +55,14 @@ static int handle_recv(struct comm_data *comm, struct sockaddr_in *sock)
 	}
 
 	struct timespec ts;
-	if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-		perror("clock_gettime");
-		return EXIT_FAILURE;
-	}
+	if(network_helper_get_time(&ts))
+		return 1;
+
+	float sec = 0;
+	sec += ts.tv_sec - comm->packet.ts_sec;
+	sec += (ts.tv_nsec - comm->packet.ts_nsec)* 1e-9;
 
 	printf("Packet information [\n");
-
-	ts.tv_sec -= comm->packet.ts_sec;
-	ts.tv_nsec -= comm->packet.ts_nsec;
-	float sec = (ts.tv_sec - comm->packet.ts_sec) +
-		((ts.tv_nsec - comm->packet.ts_nsec)* 1e-9);
-
 	printf("  from: %s:%d\n", inet_ntoa(sock->sin_addr),
 	       ntohs(sock->sin_port));
 	printf("  type: %s\n", get_test_packet_type(comm->packet.hdr.type));
@@ -77,8 +73,8 @@ static int handle_recv(struct comm_data *comm, struct sockaddr_in *sock)
 	if(HEADER_RESP_SERVER == comm->packet.hdr.type) {
 		struct timespec time_end;
 		if(network_helper_get_time(&time_end)) return 1;
-		time_end.tv_sec -= ts.tv_sec;
-		time_end.tv_nsec -= ts.tv_nsec;
+		time_end.tv_sec -= comm->ts.tv_sec;
+		time_end.tv_nsec -= comm->ts.tv_nsec;
 		float sec = time_end.tv_sec + (time_end.tv_nsec * 1e-9);
 		printf("Round tip delay delay[s]: %f\n", sec);
 	}
