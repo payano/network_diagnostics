@@ -1,3 +1,5 @@
+[![CMake](https://github.com/payano/network_diagnostics/actions/workflows/cmake.yml/badge.svg)](https://github.com/payano/network_diagnostics/actions/workflows/cmake.yml)
+
 # network_diagnostics
 A tool to diagnoze network, test if firewalls, vlan, latency is in order.
 
