@@ -23,6 +23,7 @@ Usage network_tester:
 * Armbian
 * Raspberry Pi
 * Odroid N2
+* And more...
 
 ## Why use this application?
 If you have two network looking like this:
