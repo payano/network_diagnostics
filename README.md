@@ -3,12 +3,27 @@
 # network_diagnostics
 A tool to diagnoze network, test if firewalls, vlan, latency is in order.
 
+## Usage
+<pre>
+Usage network_tester:
+  -c       Mode client   (sends data to server)
+  -r       Mode receiver (receives data from client)
+  -l       Mode listener (listens to data from client)
+  -i       Network interface to use
+  -d       Destination address to send data (used with -c)
+  -p       port number
+  -s       Source address to send data (used with -r)
+  -t       ethernet protocol (tcp or udp)
+  -v       vlan id
+</pre>
+
 ## Supported platforms
 * Asus rt-ac66u
 * Linux
 * Armbian
 * Raspberry Pi
 * Odroid N2
+* And more...
 
 ## Why use this application?
 If you have two network looking like this:
@@ -48,7 +63,7 @@ One thing to notice, is that the application can print out when the packet was r
 Then we can see the delays between different nodes on the network, to be able to pinpoint delay issues.<br/>
 
 ## Supported features will be:
-* vlan
+* vlan [ if requested ]
 * network latency
 * multiple servers to capture the packet along the way to the endpoint node
 * Suggestions?
