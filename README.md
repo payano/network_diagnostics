@@ -73,7 +73,6 @@ If you want to cross compile to a router and don't know how to do it, create a i
 Otherwise, checkout this repository:<br/>
 git clone https://github.com/payano/network_diagnostics.git<br/>
 cd network_diagnostics<br/>
-mkdir build<br/>
-cmake ..<br/>
 make<br/>
+./network_tester<br/>
 
