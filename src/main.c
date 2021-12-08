@@ -18,6 +18,8 @@
 #include "print.h"
 #include "network_helper.h"
 
+#include <pthread.h>
+
 #define VLAN_TPID 0x8100
 
 struct tester_func {
@@ -29,6 +31,7 @@ struct tester_func {
 struct tester_data {
 	struct tester_params params;
 	struct tester_func func;
+	pthread_t thread_main;
 };
 
 static struct tester_data data;
@@ -91,6 +94,7 @@ void signal_handler(int sig){
 	/* bail out... */
 	static int count = 0;
 	data.params.exit_program = 1;
+	pthread_cancel(data.thread_main);
 
 	if(!count++) {
 		printf("Stopping...\n");
@@ -316,8 +320,13 @@ static int set_functions(struct tester_func *func, enum MODE mode)
 
 int main(int argc, char *argv[])
 {
+
+
+
 	int ret;
 	memset(&data, 0, sizeof(data));
+
+	data.thread_main = pthread_self();
 
 	ret = get_params(argc, argv, &data.params);
 	if(ret)

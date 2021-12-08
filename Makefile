@@ -1,4 +1,4 @@
-LIBS  = 
+LIBS  = -lpthread 
 CFLAGS = -Wall -pedantic -O2 -Werror -Wextra -fexceptions
 
 SRC=$(wildcard src/*.c)
