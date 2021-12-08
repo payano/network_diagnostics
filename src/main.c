@@ -31,7 +31,7 @@ struct tester_data {
 	struct tester_func func;
 };
 
-static struct tester_data data = {0};
+static struct tester_data data;
 
 static int validate_ipv4_octet(char *ipv4_octet)
 {
@@ -317,6 +317,7 @@ static int set_functions(struct tester_func *func, enum MODE mode)
 int main(int argc, char *argv[])
 {
 	int ret;
+	memset(&data, 0, sizeof(data));
 
 	ret = get_params(argc, argv, &data.params);
 	if(ret)
