@@ -1,4 +1,5 @@
 [![C/C++ CI](https://github.com/payano/network_diagnostics/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/payano/network_diagnostics/actions/workflows/c-cpp.yml)
+[![CodeQL](https://github.com/payano/network_diagnostics/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/payano/network_diagnostics/actions/workflows/codeql-analysis.yml)
 
 # network_diagnostics
 A tool to diagnoze network, test if firewalls, vlan, latency is in order.
